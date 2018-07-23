@@ -1,0 +1,3 @@
+[submodule "lib/skymapper"]
+	path = lib/skymapper
+	url = https://github.com/pmelchior/skymapper.git
