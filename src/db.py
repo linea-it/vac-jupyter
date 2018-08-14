@@ -20,10 +20,12 @@ class DataAccessLayer():
 
         self.create_schema_if_not_exist()
 
-    def select_columns(self, table_name, columns=None):
+    def select_columns(self, table_name, schema=None, columns=None):
+        if schema is None:
+            schema = self.schema_output
         with self.eng.connect() as con:
             table = Table(table_name, self.meta,
-                          autoload=True, schema=self.schema_output)
+                          autoload=True, schema=schema)
             cols = self.create_columns_sql_format(table, columns)
             stm = select(cols).select_from(table)
             result = con.execute(stm)
