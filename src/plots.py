@@ -37,13 +37,7 @@ def plot_signal_area(data, NSIDE=4096):
     nsig = np.array([signals[signals >= s].size for s in sig_vals])
 
     print(signals.size)
-
     area_pix = 4 * np.pi * (180. / np.pi) ** 2 / (12 * 4096 ** 2)
-
-    ax1 = plt.axes()
-    ax1.plot(sig_vals, nsig)
-    ax1.set_ylabel('$N_{pix}$')
-    ax1.set_xlabel('signal>')
 
     fig, axes = plt.subplots()
     axes.plot(sig_vals, nsig)
