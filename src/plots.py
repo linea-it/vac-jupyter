@@ -13,10 +13,11 @@ def plot_catalog(nside, data):
     fig, ax, proj = skm.plotDensity(np.asarray(ra),
                                     np.asarray(dec),
                                     nside=nside)
+    plt.tight_layout()
     # fig.savefig(save_as + '_surface.png')
 
 
-def plot_map(data):
+def plot_map(data, label=" "): # Julia e Hillysson: added label
     ra = list()
     dec = list()
     signal = list()
@@ -27,12 +28,14 @@ def plot_map(data):
 
     fig, ax, proj = skm.plotMap(np.asarray(ra),
                                 np.asarray(dec),
-                                np.asarray(signal))
+                                np.asarray(signal), cb_label=label) 
+    ax.set_xlabel('R.A. (degrees)')   
+    ax.set_ylabel('Dec. (degrees)')
+    plt.tight_layout()
     # fig.savefig(save_as + '.png')
 
 
-def plot_signal_area(data, NSIDE=4096):
-    signals = np.array(data).T[0]
+def plot_signal_area(signals, NSIDE=4096, xlabel='', ylabel=''):   # Julia e Hillysson: added label  
     sig_vals = sorted(list(set(signals)))
     nsig = np.array([signals[signals >= s].size for s in sig_vals])
 
@@ -41,8 +44,8 @@ def plot_signal_area(data, NSIDE=4096):
 
     fig, axes = plt.subplots()
     axes.plot(sig_vals, nsig)
-    axes.set_ylabel('$N_{pix}$')
-    axes.set_xlabel('signal>')
+    axes.set_ylabel(ylabel)
+    axes.set_xlabel(xlabel)
 
     ax2 = axes.twinx()
     ax2.plot(sig_vals, 100 * nsig / float(signals.size))
@@ -51,4 +54,4 @@ def plot_signal_area(data, NSIDE=4096):
         ax2.axhline(x, ls='--', color='.5', lw=.8)
     ax2.set_ylim(ylim)
     ax2.set_ylabel('$Area (\%)' + '\; [%.2f\, deg^2]$' % (area_pix * signals.size))
-    fig.show()
+    plt.tight_layout()
