@@ -9,8 +9,6 @@ Intermediate table: is a table created on the DB to store temporary data that
 are used to compute the final result. These tables can either be 'permanent' 
 or 'temporary' depending on the kind of operation. 
 
-Basically, when a new operation must be written, we heritage the
-Operation class and override the methods validate and select.
 """
 
 from sqlalchemy.sql import and_, or_
@@ -21,7 +19,11 @@ from src import sqlalchemy_extension as se
 
 
 class Operation:
-    """ Base class to create new operations.
+    """
+    Base class to create new operations.
+
+    Basically, when a new operation must be written, we heritage the
+Operation class and override the methods validate and select.
     """
 
     def __init__(self, dal, input_params, intermediate_tables):

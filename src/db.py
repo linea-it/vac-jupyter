@@ -1,5 +1,5 @@
 """
-    Access to the database, metadata and some methods.
+    Module to facilitate the database access and some common methods used throughout code
 """
 
 
@@ -13,14 +13,27 @@ from src import sqlalchemy_extension as se
 
 
 class DataAccessLayer():
+    """
+    This class is responsible to facilitate the connection and interaction with the database.
+    """
     def __init__(self, url, schema_output):
+        """
+            Args:
+                url: An object returned by the class sqlalchemy.engine.url.URL
+
+                schema_output: schema to save the tables.
+        """
         self.eng = create_engine(url)
         self.meta = MetaData(bind=self.eng)
         self.schema_output = schema_output
 
-        self.create_schema_if_not_exist()
+        self._create_schema_if_not_exist()
 
     def select_columns(self, table_name, schema=None, columns=None):
+        """
+            It returns a tuple of values defined by a list of columns. If the schema is not defined, the schema_output
+        is used.
+        """
         if schema is None:
             schema = self.schema_output
         with self.eng.connect() as con:
@@ -32,6 +45,10 @@ class DataAccessLayer():
             return result.fetchall()
 
     def prepare_data_to_plot_catalog(self, table_dependencies):
+        """
+            The catalogs need the ra, dec info to generate plots. When the table doesn't have this info, it must look
+        for this information on the dataset.
+        """
         with self.eng.connect() as con:
             t_table_name = Table(table_dependencies['cur_table']['table'], self.meta,
                                  autoload=True, schema=table_dependencies['cur_table']['schema'])
@@ -46,7 +63,7 @@ class DataAccessLayer():
             result = con.execute(stm)
             return result.fetchall()
 
-    def create_schema_if_not_exist(self):
+    def _create_schema_if_not_exist(self):
         insp = reflection.Inspector.from_engine(self.eng)
         if self.schema_output not in insp.get_schema_names():
             self.eng.execute(CreateSchema(self.schema_output))

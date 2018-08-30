@@ -8,7 +8,7 @@ from sqlalchemy.sql.operators import custom_op, is_precedent
 
 """
     Some Sql operations are written differently based on the backend used. So,
-the classes above give support for this cases.
+the classes below give support for this cases.
 """
 
 
