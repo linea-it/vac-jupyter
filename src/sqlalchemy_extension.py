@@ -59,7 +59,7 @@ class CreateTableAs(Executable, ClauseElement):
 @compiles(CreateTableAs)
 def _create_table_as(element, compiler, **kw):
     _schema = "%s." % element.schema if element.schema is not None else ''
-    return "CREATE TABLE %s%s AS (%s)" % (
+    return "CREATE TEMP TABLE %s%s AS (%s)" % (
         _schema,
         element.name,
         compiler.process(element.query)

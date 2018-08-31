@@ -16,7 +16,7 @@ class DataAccessLayer():
     """
     This class is responsible to facilitate the connection and interaction with the database.
     """
-    def __init__(self, url, schema_output):
+    def __init__(self, url, schema_output=None):
         """
             Args:
                 url: An object returned by the class sqlalchemy.engine.url.URL
@@ -27,7 +27,8 @@ class DataAccessLayer():
         self.meta = MetaData(bind=self.eng)
         self.schema_output = schema_output
 
-        self._create_schema_if_not_exist()
+        if self.schema_output:
+            self._create_schema_if_not_exist()
 
     def select_columns(self, table_name, schema=None, columns=None):
         """
@@ -37,7 +38,7 @@ class DataAccessLayer():
         if schema is None:
             schema = self.schema_output
         with self.eng.connect() as con:
-            table = Table(table_name, self.meta,
+            table = Table(table_name, MetaData(bind=con),
                           autoload=True, schema=schema)
             cols = self.create_columns_sql_format(table, columns)
             stm = select(cols).select_from(table)
@@ -50,9 +51,9 @@ class DataAccessLayer():
         for this information on the dataset.
         """
         with self.eng.connect() as con:
-            t_table_name = Table(table_dependencies['cur_table']['table'], self.meta,
+            t_table_name = Table(table_dependencies['cur_table']['table'], MetaData(bind=con),
                                  autoload=True, schema=table_dependencies['cur_table']['schema'])
-            t_dataset = Table(table_dependencies['coadd_objects']['table'], self.meta,
+            t_dataset = Table(table_dependencies['coadd_objects']['table'], MetaData(bind=con),
                               autoload=True, schema=table_dependencies['coadd_objects']['schema'])
 
             stm_join = t_dataset
@@ -79,10 +80,12 @@ class DataAccessLayer():
 
     def create_table(self, table_name, stm):
         with self.eng.connect() as con:
-            con.execute("commit")
+            con.execute("begin")
             con.execute(se.CreateTableAs(self.schema_output, table_name, stm))
+            con.execute("commit")
 
     def delete_table(self, table_name):
         with self.eng.connect() as con:
-            con.execute("commit")
+            con.execute("begin")
             con.execute(se.DropTable(self.schema_output, table_name))
+            con.execute("commit")

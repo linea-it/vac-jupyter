@@ -60,15 +60,10 @@ Operation class and override the methods validate and select.
         return str(self.stm.compile(compile_kwargs={"literal_binds": True}))
 
     def create_table(self, table_name):
-        with self.dal.eng.connect() as con:
-            con.execute("commit")
-            con.execute(se.CreateTableAs(self.dal.schema_output,
-                                         table_name, self.stm))
+        self.dal.create_table(table_name, self.stm)
 
     def delete_table(self, table_name):
-        with self.dal.eng.connect() as con:
-            con.execute("commit")
-            con.execute(se.DropTable(self.dal.schema_output, table_name))
+        self.dal.create_table(table_name)
 
 
 class GreatEqualThanSignalColumn(Operation):
