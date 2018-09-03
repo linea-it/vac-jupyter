@@ -79,13 +79,10 @@ class DataAccessLayer():
         return t_columns
 
     def create_table(self, table_name, stm):
-        with self.eng.connect() as con:
-            con.execute("begin")
+        # runs a transaction
+        with self.eng.begin() as con:
             con.execute(se.CreateTableAs(self.schema_output, table_name, stm))
-            con.execute("commit")
 
     def delete_table(self, table_name):
-        with self.eng.connect() as con:
-            con.execute("begin")
+        with self.eng.begin() as con:
             con.execute(se.DropTable(self.schema_output, table_name))
-            con.execute("commit")
