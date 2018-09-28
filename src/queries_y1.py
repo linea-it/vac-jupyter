@@ -16,7 +16,7 @@ from sqlalchemy import Table, cast, Integer, func, case
 from sqlalchemy.sql.expression import literal_column, between, select
 
 from src import sqlalchemy_extension as se
-from db import DbConnection
+from src import db
 
 
 class Operation:
@@ -36,7 +36,7 @@ Operation class and override the methods validate and select.
                 intermediate_tables: It has a list of intermediate tables in which this new
                 operation depends.
         """
-        self.dal = DbConnection()
+        self.dal = db.DbConnection()
         if not self.dal.is_connection_initialized():
             raise("The connection to the database was not initialized")
 

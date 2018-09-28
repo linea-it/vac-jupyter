@@ -10,7 +10,7 @@ from sqlalchemy.engine import reflection
 from sqlalchemy.schema import CreateSchema
 
 from src import sqlalchemy_extension as se
-import utils
+from src import utils
 
 
 class DbConnection(metaclass=utils.Singleton):
