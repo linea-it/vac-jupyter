@@ -16,6 +16,7 @@ from sqlalchemy import Table, cast, Integer, func, case
 from sqlalchemy.sql.expression import literal_column, between, select
 
 from src import sqlalchemy_extension as se
+from db import DbConnection
 
 
 class Operation:
@@ -26,18 +27,19 @@ class Operation:
 Operation class and override the methods validate and select.
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
             Args:
-                dal: database connection class. 
-        
                 input_params: a dictionary that has specific information about the
                 operation.
         
                 intermediate_tables: It has a list of intermediate tables in which this new
                 operation depends.
         """
-        self.dal = dal
+        self.dal = DbConnection()
+        if not self.dal.is_connection_initialized():
+            raise("The connection to the database was not initialized")
+
         self.input_params = input_params
         self.intermediate_tables = intermediate_tables
 
@@ -70,7 +72,7 @@ class GreatEqualThanSignalColumn(Operation):
     """ Select data where the column signal has value greater or equal to 
     input_params['signal']
     """
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
             Args:
                 dal: database connection class. 
@@ -82,7 +84,7 @@ class GreatEqualThanSignalColumn(Operation):
                 
                 'signal' - value to apply the filter condition
         """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['schema', 'table', 'signal']
@@ -100,7 +102,7 @@ class GreatEqualThanSignalColumn(Operation):
 class CombinedMaps(Operation):
     """ Inner join between a list of tables made on the pixel column.
     """
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
             Args:
                 dal: database connection class. 
@@ -109,7 +111,7 @@ class CombinedMaps(Operation):
                 'tables' - list of dicts in which each dict must have the
                  keys 'table' and 'schema'
         """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['tables']
@@ -146,7 +148,7 @@ class CombinedMaps(Operation):
 class BadRegions(Operation):
     """ The Bad Regions mask flag regions with artifacts in the release
     """
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
             Args:
                 dal: database connection class. 
@@ -167,7 +169,7 @@ class BadRegions(Operation):
                     64 - High density of crazy colors
                     128 - Globular Clusters (William et al. 2010)
         """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['schema', 'table', 'filters']
@@ -192,7 +194,7 @@ class Footprint(Operation):
      Regions mask, the Survey Depth maps and the Systematic maps.
 
     """
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -206,7 +208,7 @@ class Footprint(Operation):
              keys 'table' and 'schema'. The remaining pixels from the
              'good_regions' will be removed based on the bad_regions existence 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['good_regions', 'bad_regions']
@@ -258,7 +260,7 @@ class Reduction(Operation):
     """ TODO Reduction docs
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -274,7 +276,7 @@ class Reduction(Operation):
              'schema'. This table was created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         if 'coadd_objects_ring' not in self.input_params:
@@ -311,7 +313,7 @@ class ZeroPoint(Operation):
         "sfd98"
         }
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -334,7 +336,7 @@ class ZeroPoint(Operation):
             
             'columns' - columns to apply zp correction
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
         self.t_coadd = None
         self.t_zp = None
@@ -472,7 +474,7 @@ class Cuts(Operation):
     def to_magerr_column(mag_type, band):
         return ('%s_%s' % (Cuts.MAGERR_TYPE[mag_type], band))
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -527,7 +529,7 @@ class Cuts(Operation):
              'schema'. This table was created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['coadd_objects', 'mag_type', 'sextractor_flags',
@@ -688,7 +690,7 @@ class Cuts(Operation):
 class Bitmask(Operation):
     """ TODO Bitmask DOCS here
     """
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -706,7 +708,7 @@ class Bitmask(Operation):
              'schema'. The table created on the previous step
             
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['molygon_coadds', 'molygon', 'mangle_bitmask']
@@ -752,7 +754,7 @@ class ObjectSelection(Operation):
     """ TODO ObjectSelection DOCS here
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -770,7 +772,7 @@ class ObjectSelection(Operation):
              'schema'. The table created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['coadd_objects', 'columns_data_set']
@@ -813,7 +815,7 @@ class SgSeparation(Operation):
     """ TODO SgSeparation DOCS here
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -834,7 +836,7 @@ class SgSeparation(Operation):
              'schema'. The table created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['select_starts', 'select_galaxies', 'reference_band',
@@ -881,7 +883,7 @@ class PhotoZ(Operation):
     """ TODO PhotoZ DOCS here
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -899,7 +901,7 @@ class PhotoZ(Operation):
              'schema'. The table created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['zmin', 'zmax', 'pz_tables']
@@ -938,7 +940,7 @@ class GalaxyProperties(Operation):
     """ TODO GalaxyProperties DOCS here
     """
 
-    def __init__(self, dal, input_params, intermediate_tables):
+    def __init__(self, input_params, intermediate_tables):
         """
         Args:
             dal: database connection class.
@@ -954,7 +956,7 @@ class GalaxyProperties(Operation):
              'schema'. The table created on the previous step
 
             """
-        super().__init__(dal, input_params, intermediate_tables)
+        super().__init__(input_params, intermediate_tables)
 
     def validate(self):
         keys = ['columns', 'gp_tables']

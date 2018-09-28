@@ -10,25 +10,37 @@ from sqlalchemy.engine import reflection
 from sqlalchemy.schema import CreateSchema
 
 from src import sqlalchemy_extension as se
+import utils
 
 
-class DataAccessLayer():
+class DbConnection(metaclass=utils.Singleton):
     """
     This class is responsible to facilitate the connection and interaction with the database.
     """
-    def __init__(self, url, schema_output=None):
+    def __init__(self):
+        self.eng = None
+        self.meta = None
+        self.schema_output = None
+
+        self._is_connection_initialized = False
+
+    def db_init(self, url_connection, schema_output=None):
         """
             Args:
-                url: An object returned by the class sqlalchemy.engine.url.URL
-
+                url_connection: An object returned by the class sqlalchemy.engine.url.URL
                 schema_output: schema to save the tables.
         """
-        self.eng = create_engine(url)
+        self.eng = create_engine(url_connection)
         self.meta = MetaData(bind=self.eng)
         self.schema_output = schema_output
 
         if self.schema_output:
             self._create_schema_if_not_exist()
+
+        self._is_connection_initialized = True
+
+    def is_connection_initialized(self):
+        return self._is_connection_initialized
 
     def select_columns(self, table_name, schema=None, columns=None):
         """
