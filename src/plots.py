@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.cm as cm
-from lib.skymapper import skymapper as skm
 import healpy as hp
 from astropy.io import fits
 
@@ -137,7 +136,11 @@ def plot_catalog(nside, data):
         ra.append(d[0])
         dec.append(d[1])
 
-    fig, ax, proj = skm.plotDensity(np.asarray(ra),
+    fig, ax, proj = 
+    
+    
+    
+    .plotDensity(np.asarray(ra),
                                     np.asarray(dec),
                                     nside=nside)
     plt.tight_layout()
